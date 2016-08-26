@@ -25,6 +25,7 @@ package com.cpoopc.scrollablelayoutlib;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -48,6 +49,7 @@ public class ScrollableHelper {
          * @return ScrollView/ListView/RecycelerView..'s instance
          */
         View getScrollableView();
+        int getItemDecoration();
     }
 
     public void setCurrentScrollableContainer(ScrollableContainer scrollableContainer) {
@@ -75,27 +77,30 @@ public class ScrollableHelper {
             return true;
         }
         if (scrollableView instanceof AdapterView) {
-            return isAdapterViewTop((AdapterView) scrollableView);
+            return isAdapterViewTop(mCurrentScrollableCainer);
         }
         if (scrollableView instanceof ScrollView) {
-            return isScrollViewTop((ScrollView) scrollableView);
+            return isScrollViewTop(mCurrentScrollableCainer);
         }
         if (scrollableView instanceof RecyclerView) {
-            return isRecyclerViewTop((RecyclerView) scrollableView);
+            return isRecyclerViewTop(mCurrentScrollableCainer);
         }
         if (scrollableView instanceof WebView) {
-            return isWebViewTop((WebView) scrollableView);
+            return isWebViewTop(mCurrentScrollableCainer);
         }
         throw new IllegalStateException("scrollableView must be a instance of AdapterView|ScrollView|RecyclerView");
     }
 
-    private static boolean isRecyclerViewTop(RecyclerView recyclerView) {
+    private static boolean isRecyclerViewTop(ScrollableContainer scrollableContainer) {
+        RecyclerView recyclerView = (RecyclerView) scrollableContainer.getScrollableView();
+
         if (recyclerView != null) {
             RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
             if (layoutManager instanceof LinearLayoutManager) {
                 int firstVisibleItemPosition = ((LinearLayoutManager) layoutManager).findFirstVisibleItemPosition();
                 View childAt = recyclerView.getChildAt(0);
-                if (childAt == null || (firstVisibleItemPosition == 0 && childAt.getTop() == 0)) {
+                if (childAt == null || (firstVisibleItemPosition == 0 && childAt.getTop() ==
+                    scrollableContainer.getItemDecoration())) {
                     return true;
                 }
             }
@@ -103,18 +108,21 @@ public class ScrollableHelper {
         return false;
     }
 
-    private static boolean isAdapterViewTop(AdapterView adapterView){
+    private static boolean isAdapterViewTop(ScrollableContainer scrollableContainer) {
+        AdapterView adapterView = (AdapterView) scrollableContainer.getScrollableView();
+
         if(adapterView != null){
             int firstVisiblePosition = adapterView.getFirstVisiblePosition();
             View childAt = adapterView.getChildAt(0);
-            if(childAt == null || (firstVisiblePosition == 0 && childAt.getTop() == 0)){
+            if(childAt == null || (firstVisiblePosition == 0 && childAt.getTop() == 0)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean isScrollViewTop(ScrollView scrollView){
+    private static boolean isScrollViewTop(ScrollableContainer scrollableContainer) {
+        ScrollView scrollView = (ScrollView) scrollableContainer.getScrollableView();
         if(scrollView != null) {
             int scrollViewY = scrollView.getScrollY();
             return scrollViewY <= 0;
@@ -122,9 +130,10 @@ public class ScrollableHelper {
         return false;
     }
 
-    private static boolean isWebViewTop(WebView scrollView){
-        if(scrollView != null) {
-            int scrollViewY = scrollView.getScrollY();
+    private static boolean isWebViewTop(ScrollableContainer scrollableContainer) {
+        WebView webView = (WebView) scrollableContainer.getScrollableView();
+        if(webView != null) {
+            int scrollViewY = webView.getScrollY();
             return scrollViewY <= 0;
         }
         return false;
